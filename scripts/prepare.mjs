@@ -166,19 +166,14 @@ fs.writeFileSync(
   path.join(root, "quartz/static/evial-map.html"),
   tpl.replace("__MARKERS__", JSON.stringify(markers)).replace("__IMAGE__", `../${mapImage}`),
 )
-const allPlaces = byType("place").sort((a, b) => a.title.localeCompare(b.title, "ru"))
 write(
   "places/index.md",
-  { title: "Места и карта", hideListing: true },
+  { title: "Карта", hideListing: true },
   `Карту можно приближать и двигать. Нажми на метку, чтобы прочитать о месте и открыть его страницу.
 
 <iframe class="map-frame" src="../static/evial-map.html" title="Карта Эвиала" loading="lazy"></iframe>
 
 Обзор мира по регионам: [География](../lore/geography.md). [Карта целиком](../${mapImage}).
-
-## Все места
-
-${allPlaces.map((p) => `- [${p.title}](${rel("places", p.slug)}.md)${p.data.kind ? `: ${p.data.kind}` : ""}`).join("\n")}
 `,
 )
 
@@ -209,7 +204,7 @@ write(
 <div class="home-tiles">
 ${tile("./sessions/", "📜", "Хроника", "пересказ каждой сессии и история мира")}
 ${tile("./characters/", "🛡", "Персонажи", "партия, цели, персонажи мастера и связи")}
-${tile("./places/", "🗺", "Места и карта", "интерактивная карта Эвиала")}
+${tile("./places/", "🗺", "Карта", "интерактивная карта Эвиала и все места")}
 ${tile("./factions/", "⚔", "Фракции", "организации и банды")}
 ${tile("./lore/", "📖", "Лор", "история, народы, религия, экономика")}
 ${tile("./rules/", "📘", "Правила", "хоумбрю мастера и настройка листа")}
