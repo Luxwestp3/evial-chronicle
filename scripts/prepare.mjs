@@ -11,6 +11,8 @@ const OUT = path.join(root, ".site-content")
 
 fs.rmSync(OUT, { recursive: true, force: true })
 fs.cpSync(SRC, OUT, { recursive: true })
+// Working notes for the archive keepers, not for readers of the site.
+for (const f of ["README.md", "questions.md"]) fs.rmSync(path.join(OUT, f), { force: true })
 
 // ---------- read the archive ----------
 const pages = []
@@ -211,7 +213,6 @@ ${tile("./rules/", "📘", "Правила", "хоумбрю мастера и �
 </div>
 
 ${last ? `## Последняя сессия\n\n<div class="chronicle">\n${sessionEntry("")(last)}\n</div>\n` : ""}
-Ещё: [открытые вопросы](questions.md) и [как устроен архив](README.md).
 `,
 )
 
