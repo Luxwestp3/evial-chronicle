@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Карта Эвиала</title>
+<link rel="stylesheet" href="leaflet/leaflet.css">
+<script src="leaflet/leaflet.js"></script>
+<style>
+  html, body { margin: 0; height: 100%; background: #d9d4c7; }
+  #map { height: 100%; background: #d9d4c7; }
+  .pin { width: 16px; height: 16px; border-radius: 50%; background: #9b2c1c; border: 2px solid #fff6e0;
+         box-shadow: 0 0 0 2px rgba(60, 20, 10, .55), 0 2px 6px rgba(0,0,0,.45); }
+  .pin:hover { background: #c8471f; }
+  .leaflet-tooltip.place-label { background: rgba(255, 248, 230, .95); border: 1px solid #8a6d3b; color: #3b2a14;
+         font: 600 13px/1.2 Georgia, serif; padding: 2px 6px; box-shadow: none; }
+  .leaflet-popup-content { font: 14px/1.4 Georgia, serif; color: #2b2115; margin: 12px 14px; }
+  .leaflet-popup-content h3 { margin: 0 0 2px; font-size: 16px; }
+  .leaflet-popup-content .kind { color: #7a6243; font-style: italic; margin-bottom: 6px; }
+  .leaflet-popup-content a.open { display: inline-block; margin-top: 8px; color: #9b2c1c; font-weight: 600; }
+  .toggle { background: #fff8e6; padding: 4px 8px; font: 13px Georgia, serif; border-radius: 4px; cursor: pointer;
+            border: 1px solid #8a6d3b; }
+</style>
+</head>
+<body>
+<div id="map"></div>
+<script>
+  const MARKERS = __MARKERS__
+  const W = 1114, H = 945
+  const map = L.map("map", { crs: L.CRS.Simple, minZoom: -1, maxZoom: 2, zoomSnap: 0.25, attributionControl: false })
+  const bounds = [[0, 0], [H, W]]
+  L.imageOverlay("__IMAGE__", bounds).addTo(map)
+  map.fitBounds(bounds)
+  map.setMaxBounds([[-200, -200], [H + 200, W + 200]])
+
+  const icon = L.divIcon({ className: "", html: '<div class="pin"></div>', iconSize: [16, 16], iconAnchor: [8, 8] })
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c])
+  const labels = []
+  for (const m of MARKERS) {
+    const marker = L.marker([H - m.y, m.x], { icon, title: m.title }).addTo(map)
+    marker.bindPopup(
+      `<h3>${esc(m.title)}</h3>` +
+      (m.kind ? `<div class="kind">${esc(m.kind)}</div>` : "") +
+      (m.text ? `<div>${esc(m.text)}${m.text.length >= 260 ? "…" : ""}</div>` : "") +
+      `<a class="open" href="${esc(m.href)}" target="_top">Открыть страницу →</a>`,
+      { maxWidth: 280 },
+    )
+    labels.push(marker.bindTooltip(esc(m.title), { className: "place-label", direction: "right", offset: [8, 0] }))
+  }
+
+  // Button to keep all labels visible.
+  const Toggle = L.Control.extend({
+    onAdd() {
+      const el = L.DomUtil.create("div", "toggle")
+      el.textContent = "Показать названия"
+      let on = false
+      L.DomEvent.on(el, "click", (e) => {
+        L.DomEvent.stop(e)
+        on = !on
+        el.textContent = on ? "Скрыть названия" : "Показать названия"
+        for (const mk of labels) {
+          const t = mk.getTooltip()
+          mk.unbindTooltip().bindTooltip(t.getContent(), { className: "place-label", direction: "right", offset: [8, 0], permanent: on })
+        }
+      })
+      return el
+    },
+  })
+  new Toggle({ position: "topright" }).addTo(map)
+</script>
+</body>
+</html>

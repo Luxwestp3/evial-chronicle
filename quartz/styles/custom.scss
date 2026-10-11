@@ -1,0 +1,165 @@
+@use "./base.scss";
+@use "./variables.scss" as *;
+
+// Hero cards
+.hero-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 0.9rem;
+  margin: 1rem 0 1.5rem;
+}
+
+a.hero-card {
+  display: flex;
+  gap: 0.8rem;
+  align-items: flex-start;
+  padding: 0.9rem;
+  border: 1px solid var(--lightgray);
+  border-radius: 10px;
+  background: var(--highlight);
+  color: var(--darkgray);
+  font-weight: normal;
+  text-decoration: none;
+  transition: border-color 0.15s, transform 0.15s;
+
+  &:hover {
+    border-color: var(--tertiary);
+    transform: translateY(-2px);
+    background: var(--highlight);
+  }
+}
+
+.hero-portrait {
+  flex: 0 0 64px;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin: 0;
+  border: 2px solid var(--tertiary);
+}
+
+.hero-initial {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--headerFont);
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--light);
+  background: var(--secondary);
+}
+
+.hero-name {
+  font-family: var(--headerFont);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--dark);
+}
+
+.hero-meta {
+  font-size: 0.9rem;
+  color: var(--secondary);
+}
+
+.hero-player {
+  font-size: 0.85rem;
+  color: var(--gray);
+}
+
+.hero-goal {
+  margin-top: 0.4rem;
+  font-size: 0.9rem;
+  line-height: 1.35;
+}
+
+// Chronicle timeline
+.chronicle {
+  position: relative;
+  margin: 1rem 0;
+  padding-left: 0.5rem;
+}
+
+.chronicle-entry {
+  display: flex;
+  gap: 1rem;
+  position: relative;
+  padding-bottom: 1.2rem;
+
+  &:not(:last-child)::before {
+    content: "";
+    position: absolute;
+    left: 1.1rem;
+    top: 2.4rem;
+    bottom: 0;
+    border-left: 2px dashed var(--lightgray);
+  }
+}
+
+.chronicle-marker {
+  flex: 0 0 2.2rem;
+  height: 2.2rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--headerFont);
+  font-weight: 700;
+  color: var(--light);
+  background: var(--secondary);
+  border: 2px solid var(--tertiary);
+}
+
+.chronicle-body {
+  flex: 1;
+
+  p {
+    margin: 0.4rem 0 0;
+  }
+}
+
+a.chronicle-title {
+  font-family: var(--headerFont);
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.chronicle-dates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 1rem;
+  font-size: 0.85rem;
+  color: var(--gray);
+}
+
+// Home navigation tiles
+.home-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin: 1rem 0;
+
+  a {
+    padding: 0.45rem 0.9rem;
+    border: 1px solid var(--lightgray);
+    border-radius: 999px;
+    background: var(--highlight);
+    font-weight: 600;
+  }
+}
+
+// Interactive map
+iframe.map-frame {
+  width: 100%;
+  height: 75vh;
+  min-height: 420px;
+  border: 1px solid var(--lightgray);
+  border-radius: 10px;
+}
+
+@media all and ($mobile) {
+  iframe.map-frame {
+    height: 60vh;
+    min-height: 320px;
+  }
+}

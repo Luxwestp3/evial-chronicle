@@ -1,0 +1,10 @@
+.DS_Store
+node_modules
+public
+prof
+tsconfig.tsbuildinfo
+.obsidian
+.quartz-cache
+.site-content
+private/
+quartz/static/evial-map.html
