@@ -22,23 +22,26 @@ interface RenderComponents {
 }
 
 const headerRegex = new RegExp(/h[1-6]/)
+// campaign site: cache-busting suffix so browsers pick up new styles right after a deploy
+const buildVersion = `?v=${(process.env.GITHUB_SHA ?? String(Date.now())).slice(0, 10)}`
+
 export function pageResources(
   baseDir: FullSlug | RelativeURL,
   staticResources: StaticResources,
 ): StaticResources {
-  const contentIndexPath = joinSegments(baseDir, "static/contentIndex.json")
+  const contentIndexPath = joinSegments(baseDir, "static/contentIndex.json") + buildVersion
   const contentIndexScript = `const fetchData = fetch("${contentIndexPath}").then(data => data.json())`
 
   const resources: StaticResources = {
     css: [
       {
-        content: joinSegments(baseDir, "index.css"),
+        content: joinSegments(baseDir, "index.css") + buildVersion,
       },
       ...staticResources.css,
     ],
     js: [
       {
-        src: joinSegments(baseDir, "prescript.js"),
+        src: joinSegments(baseDir, "prescript.js") + buildVersion,
         loadTime: "beforeDOMReady",
         contentType: "external",
       },
@@ -54,7 +57,7 @@ export function pageResources(
   }
 
   resources.js.push({
-    src: joinSegments(baseDir, "postscript.js"),
+    src: joinSegments(baseDir, "postscript.js") + buildVersion,
     loadTime: "afterDOMReady",
     moduleType: "module",
     contentType: "external",
