@@ -133,18 +133,36 @@ a.chronicle-title {
 }
 
 // Home navigation tiles
-.home-links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.6rem;
-  margin: 1rem 0;
+.home-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.7rem;
+  margin: 1.2rem 0 1.8rem;
 
-  a {
-    padding: 0.45rem 0.9rem;
+  a.home-tile {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    padding: 0.8rem 0.9rem;
     border: 1px solid var(--lightgray);
-    border-radius: 999px;
+    border-radius: 10px;
     background: var(--highlight);
-    font-weight: 600;
+    color: var(--darkgray);
+    font-weight: normal;
+    font-size: 0.9rem;
+    line-height: 1.35;
+    transition: border-color 0.15s;
+
+    &:hover {
+      border-color: var(--tertiary);
+    }
+  }
+
+  .home-tile-name {
+    font-family: var(--headerFont);
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--secondary);
   }
 }
 

@@ -8,9 +8,9 @@ export const sharedPageComponents: SharedLayout = {
   afterBody: [],
   footer: Component.Footer({
     links: {
-      Хроника: "/evial-chronicle/chronicle",
-      Герои: "/evial-chronicle/heroes",
-      Карта: "/evial-chronicle/map",
+      Хроника: "/evial-chronicle/sessions/",
+      Персонажи: "/evial-chronicle/characters/",
+      Карта: "/evial-chronicle/places/",
     },
   }),
 }
@@ -39,7 +39,18 @@ export const defaultContentPageLayout: PageLayout = {
         { Component: Component.ReaderMode() },
       ],
     }),
-    Component.Explorer(),
+    Component.Explorer({
+      // Only the six sections; loose root pages (goals, relationships, timeline...) live inside them.
+      filterFn: (node) => node.slugSegment !== "tags" && (node.isFolder || node.slug.includes("/")),
+      sortFn: (a, b) => {
+        const order = ["sessions", "characters", "places", "factions", "lore", "rules", "pc", "npc"]
+        const ia = order.indexOf(a.slugSegment)
+        const ib = order.indexOf(b.slugSegment)
+        if (ia !== -1 || ib !== -1) return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib)
+        if (a.isFolder !== b.isFolder) return a.isFolder ? -1 : 1
+        return a.displayName.localeCompare(b.displayName, "ru", { numeric: true })
+      },
+    }),
   ],
   right: [
     Component.Graph(),
@@ -67,7 +78,18 @@ export const defaultListPageLayout: PageLayout = {
         { Component: Component.Darkmode() },
       ],
     }),
-    Component.Explorer(),
+    Component.Explorer({
+      // Only the six sections; loose root pages (goals, relationships, timeline...) live inside them.
+      filterFn: (node) => node.slugSegment !== "tags" && (node.isFolder || node.slug.includes("/")),
+      sortFn: (a, b) => {
+        const order = ["sessions", "characters", "places", "factions", "lore", "rules", "pc", "npc"]
+        const ia = order.indexOf(a.slugSegment)
+        const ib = order.indexOf(b.slugSegment)
+        if (ia !== -1 || ib !== -1) return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib)
+        if (a.isFolder !== b.isFolder) return a.isFolder ? -1 : 1
+        return a.displayName.localeCompare(b.displayName, "ru", { numeric: true })
+      },
+    }),
   ],
   right: [],
 }
