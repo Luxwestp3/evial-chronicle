@@ -208,7 +208,6 @@ const folderTitles = {
   factions: "Фракции",
   lore: "Лор",
   rules: "Правила",
-  maps: "Карты",
 }
 for (const [dir, title] of Object.entries(folderTitles)) {
   const rel = `${dir}/index.md`
