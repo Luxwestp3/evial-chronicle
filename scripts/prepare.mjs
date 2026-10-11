@@ -107,6 +107,26 @@ const sessionEntry = (fromDir) => (p) => {
 </div>`
 }
 
+// Sessions grouped for the chronicle. A session can set `arc:` in its frontmatter to join a named
+// group (e.g. an act or a journey); otherwise played sessions go under «Сессии».
+// Session 0 (character creation) always stands apart, at the bottom.
+const played = sessions.filter((p) => (p.data.number ?? 0) > 0)
+const zero = sessions.filter((p) => (p.data.number ?? 0) === 0)
+const chronicleGroups = (fromDir) => {
+  const groups = new Map()
+  for (const p of [...played].reverse()) {
+    const key = p.data.arc ?? "Сессии"
+    if (!groups.has(key)) groups.set(key, [])
+    groups.get(key).push(p)
+  }
+  const block = (title, list) =>
+    `## ${title}\n\n<div class="chronicle">\n${list.map(sessionEntry(fromDir)).join("\n")}\n</div>\n`
+  const out = [...groups].map(([title, list]) => block(title, list))
+  if (!played.length) out.push("## Сессии\n\nИгра ещё не началась.\n")
+  if (zero.length) out.push(block("Нулевая сессия", zero))
+  return out.join("\n")
+}
+
 // Sections of the site, in menu order. Each is an archive folder whose index page we generate.
 // Root-level archive files (goals, relationships, timeline, questions, README) are folded into these.
 
@@ -114,11 +134,9 @@ const sessionEntry = (fromDir) => (p) => {
 write(
   "sessions/index.md",
   { title: "Хроника", hideListing: true },
-  `Все сессии по порядку. Время в мире идёт вместе с реальным: неделя жизни примерно равна неделе в игре.
+  `Время в мире идёт вместе с реальным: неделя жизни примерно равна неделе в игре.
 
-<div class="chronicle">
-${[...sessions].reverse().map(sessionEntry("sessions")).join("\n")}
-</div>
+${chronicleGroups("sessions")}
 
 ## История мира
 
@@ -195,7 +213,7 @@ for (const [dir, title] of Object.entries(folderTitles)) {
 }
 
 // ---------- home ----------
-const last = sessions[sessions.length - 1]
+const last = played[played.length - 1]
 const tile = (href, icon, name, text) =>
   `<a class="home-tile internal" href="${href}"><span class="home-tile-name">${icon} ${name}</span><span>${text}</span></a>`
 write(
@@ -212,7 +230,7 @@ ${tile("./lore/", "📖", "Лор", "история, народы, религи�
 ${tile("./rules/", "📘", "Правила", "хоумбрю мастера и настройка листа")}
 </div>
 
-${last ? `## Последняя сессия\n\n<div class="chronicle">\n${sessionEntry("")(last)}\n</div>\n` : ""}
+${last ? `## Последняя сессия\n\n<div class="chronicle">\n${sessionEntry("")(last)}\n</div>\n` : zero.length ? `## Перед началом игры\n\n<div class="chronicle">\n${sessionEntry("")(zero[0])}\n</div>\n` : ""}
 `,
 )
 

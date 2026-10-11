@@ -49,6 +49,10 @@ export const defaultContentPageLayout: PageLayout = {
         const ib = order.indexOf(b.slugSegment)
         if (ia !== -1 || ib !== -1) return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib)
         if (a.isFolder !== b.isFolder) return a.isFolder ? -1 : 1
+        // session 0 (character creation) goes after the played sessions
+        const za = a.slugSegment.startsWith("000-")
+        const zb = b.slugSegment.startsWith("000-")
+        if (za !== zb) return za ? 1 : -1
         return a.displayName.localeCompare(b.displayName, "ru", { numeric: true })
       },
     }),
@@ -88,6 +92,10 @@ export const defaultListPageLayout: PageLayout = {
         const ib = order.indexOf(b.slugSegment)
         if (ia !== -1 || ib !== -1) return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib)
         if (a.isFolder !== b.isFolder) return a.isFolder ? -1 : 1
+        // session 0 (character creation) goes after the played sessions
+        const za = a.slugSegment.startsWith("000-")
+        const zb = b.slugSegment.startsWith("000-")
+        if (za !== zb) return za ? 1 : -1
         return a.displayName.localeCompare(b.displayName, "ru", { numeric: true })
       },
     }),
