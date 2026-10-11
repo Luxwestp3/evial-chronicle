@@ -11,6 +11,7 @@ export const sharedPageComponents: SharedLayout = {
       Хроника: "/evial-chronicle/sessions/",
       Персонажи: "/evial-chronicle/characters/",
       Карта: "/evial-chronicle/places/",
+      GitHub: "https://github.com/Luxwestp3/evial-chronicle",
     },
   }),
 }
