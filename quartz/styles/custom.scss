@@ -181,3 +181,8 @@ iframe.map-frame {
     min-height: 320px;
   }
 }
+
+// Less empty space under the footer, so short pages don't scroll
+footer {
+  margin-bottom: 1rem;
+}
