@@ -1,7 +1,7 @@
 ---
 title: Чёрная яма
 type: place
-map: [1028, 385]
+map: [1016, 381]
 kind: аномалия
 aliases: [Великая яма, Тёмная яма]
 first_seen: 0

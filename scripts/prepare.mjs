@@ -5,6 +5,7 @@ import fs from "node:fs"
 import path from "node:path"
 import matter from "gray-matter"
 import sharp from "sharp"
+import crypto from "node:crypto"
 
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..")
 const SRC = path.join(root, "content")
@@ -232,19 +233,23 @@ for (const p of places) {
       <g fill="${fill}" stroke="#b0281a" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round">${marks.join("")}</g>
     </svg>`,
   )
-  const outFile = path.join(OUT, "places/minimaps", `${name}.jpg`)
-  fs.mkdirSync(path.dirname(outFile), { recursive: true })
   // sharp applies composite after resize, so the overlay is drawn at the output size.
-  await sharp(mapSrc)
+  const jpg = await sharp(mapSrc)
     .extract({ left, top, width: Math.round(cw), height: Math.round(ch) })
     .resize(OUT_W, OUT_H, { kernel: "lanczos3" })
     .composite([{ input: svg, left: 0, top: 0 }])
     .jpeg({ quality: 85 })
-    .toFile(outFile)
+    .toBuffer()
+  // Content hash in the file name so browsers drop a cached old picture after a change
+  // (Quartz mangles query strings in links).
+  const ver = crypto.createHash("md5").update(jpg).digest("hex").slice(0, 8)
+  const outFile = path.join(OUT, "places/minimaps", `${name}-${ver}.jpg`)
+  fs.mkdirSync(path.dirname(outFile), { recursive: true })
+  fs.writeFileSync(outFile, jpg)
   // Insert the mini-map right after the page's H1.
   const file = path.join(OUT, `${p.slug}.md`)
   const raw = fs.readFileSync(file, "utf8")
-  const fig = `\n<div class="minimap"><img src="minimaps/${name}.jpg" alt="${esc(p.title)} на карте"></div>\n`
+  const fig = `\n<div class="minimap"><img src="minimaps/${name}-${ver}.jpg" alt="${esc(p.title)} на карте"></div>\n`
   const { data, content } = matter(raw)
   fs.writeFileSync(file, matter.stringify(`${fig}\n${content.trimStart()}`, data))
 }
