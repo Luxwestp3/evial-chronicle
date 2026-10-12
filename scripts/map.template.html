@@ -45,6 +45,19 @@
       `<a class="open" href="${esc(m.href)}" target="_top">Открыть страницу →</a>`,
       { maxWidth: 280 },
     )
+    // Border of the place, shown while the pin is hovered or its popup is open.
+    if (m.shape) {
+      const ll = (pts) => pts.map(([x, y]) => [H - y, x])
+      const style = { color: "#b0281a", weight: 3, fillColor: "#9b2c1c", fillOpacity: 0.15, interactive: false }
+      const area = m.shape.polygons ? L.polygon(m.shape.polygons.map(ll), style)
+        : m.shape.line ? L.polyline(ll(m.shape.line), { ...style, weight: 4 })
+        : L.circle([H - m.shape.circle[1], m.shape.circle[0]], { ...style, radius: m.shape.circle[2] })
+      let open = false
+      const show = () => { if (!map.hasLayer(area)) area.addTo(map) }
+      const hide = () => { if (!open) area.remove() }
+      marker.on("mouseover", show).on("mouseout", hide)
+      marker.on("popupopen", () => { open = true; show() }).on("popupclose", () => { open = false; area.remove() })
+    }
     labels.push(marker.bindTooltip(esc(m.title), { className: "place-label", direction: "right", offset: [8, 0] }))
   }
 

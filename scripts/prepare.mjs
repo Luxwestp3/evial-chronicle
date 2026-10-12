@@ -252,7 +252,10 @@ const tpl = fs.readFileSync(path.join(root, "scripts/map.template.html"), "utf8"
 // Quartz rewrites .html files found in content, so the map page goes to quartz/static (copied verbatim to /static).
 fs.writeFileSync(
   path.join(root, "quartz/static/evial-map.html"),
-  tpl.replace("__MARKERS__", JSON.stringify(markers)).replace("__IMAGE__", `../${mapImage}`),
+  tpl.replace(
+    "__MARKERS__",
+    JSON.stringify(markers.map((m, i) => ({ ...m, shape: areas[path.posix.basename(places[i].slug)] }))),
+  ).replace("__IMAGE__", `../${mapImage}`),
 )
 write(
   "places/index.md",
