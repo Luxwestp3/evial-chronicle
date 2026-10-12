@@ -4,6 +4,7 @@
 import fs from "node:fs"
 import path from "node:path"
 import matter from "gray-matter"
+import sharp from "sharp"
 
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..")
 const SRC = path.join(root, "content")
@@ -20,6 +21,10 @@ for (const rel of fs.readdirSync(OUT, { recursive: true })) {
   if (!rel.endsWith(".md")) continue
   const raw = fs.readFileSync(path.join(OUT, rel), "utf8")
   const { data, content } = matter(raw)
+  // The archive starts each page with "# Title"; Quartz already prints the title, so drop it on the site.
+  if (/^\s*# /.test(content)) {
+    fs.writeFileSync(path.join(OUT, rel), matter.stringify(content.replace(/^\s*# .*\n/, ""), data))
+  }
   const slug = rel.replace(/\\/g, "/").replace(/\.md$/, "")
   pages.push({ slug, data, body: content, title: data.title ?? path.basename(slug) })
 }
@@ -180,6 +185,40 @@ const markers = places.map((p) => ({
   text: plain(firstParagraph(p.body)).slice(0, 260),
 }))
 const mapImage = "maps/evial.jpg"
+
+// Mini-map on every place page: a crop of the world map around the place, with a pin.
+const MINI_W = 360
+const MINI_H = 240
+const mapSrc = path.join(OUT, mapImage)
+const { width: MAP_W, height: MAP_H } = await sharp(mapSrc).metadata()
+for (const p of places) {
+  const [x, y] = p.data.map
+  const left = Math.min(Math.max(Math.round(x - MINI_W / 2), 0), MAP_W - MINI_W)
+  const top = Math.min(Math.max(Math.round(y - MINI_H / 2), 0), MAP_H - MINI_H)
+  const px = x - left
+  const py = y - top
+  const pin = Buffer.from(
+    `<svg width="${MINI_W}" height="${MINI_H}" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="${px}" cy="${py}" r="26" fill="none" stroke="#fff6e0" stroke-width="5" opacity="0.8"/>
+      <circle cx="${px}" cy="${py}" r="26" fill="none" stroke="#9b2c1c" stroke-width="3"/>
+    </svg>`,
+  )
+  const name = path.posix.basename(p.slug)
+  const outFile = path.join(OUT, "places/minimaps", `${name}.jpg`)
+  fs.mkdirSync(path.dirname(outFile), { recursive: true })
+  await sharp(mapSrc)
+    .extract({ left, top, width: MINI_W, height: MINI_H })
+    .composite([{ input: pin }])
+    .resize(MINI_W * 2, MINI_H * 2, { kernel: "lanczos3" })
+    .jpeg({ quality: 85 })
+    .toFile(outFile)
+  // Insert the mini-map right after the page's H1.
+  const file = path.join(OUT, `${p.slug}.md`)
+  const raw = fs.readFileSync(file, "utf8")
+  const fig = `\n<a class="minimap internal" href="./" title="Открыть карту"><img src="minimaps/${name}.jpg" alt="${esc(p.title)} на карте"></a>\n`
+  const { data, content } = matter(raw)
+  fs.writeFileSync(file, matter.stringify(`${fig}\n${content.trimStart()}`, data))
+}
 const tpl = fs.readFileSync(path.join(root, "scripts/map.template.html"), "utf8")
 // Quartz rewrites .html files found in content, so the map page goes to quartz/static (copied verbatim to /static).
 fs.writeFileSync(

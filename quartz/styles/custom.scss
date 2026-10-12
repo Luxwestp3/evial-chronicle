@@ -186,3 +186,26 @@ iframe.map-frame {
 footer {
   margin-bottom: 1rem;
 }
+
+// Mini-map on place pages
+a.minimap {
+  display: block;
+  max-width: 480px;
+  margin: 0.5rem 0 1.2rem;
+  padding: 0;
+  background: none;
+  border: 1px solid var(--lightgray);
+  border-radius: 10px;
+  overflow: hidden;
+
+  img {
+    display: block;
+    width: 100%;
+    margin: 0;
+    border-radius: 0;
+  }
+
+  &:hover {
+    border-color: var(--tertiary);
+  }
+}
