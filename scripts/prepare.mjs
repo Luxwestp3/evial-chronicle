@@ -186,30 +186,59 @@ const markers = places.map((p) => ({
 }))
 const mapImage = "maps/evial.jpg"
 
-// Mini-map on every place page: a crop of the world map around the place, with a pin.
+// Mini-map on every place page: a crop of the world map with the place outlined in red.
+// Shapes come from maps/areas.json (polygons, a river line or a small circle); places
+// without a shape get a ring around `map: [x, y]`.
 const MINI_W = 360
 const MINI_H = 240
+const OUT_W = 720
+const OUT_H = 480
 const mapSrc = path.join(OUT, mapImage)
 const { width: MAP_W, height: MAP_H } = await sharp(mapSrc).metadata()
+const areasFile = path.join(OUT, "maps/areas.json")
+const areas = fs.existsSync(areasFile) ? JSON.parse(fs.readFileSync(areasFile, "utf8")) : {}
+fs.rmSync(areasFile, { force: true })
 for (const p of places) {
+  const name = path.posix.basename(p.slug)
   const [x, y] = p.data.map
-  const left = Math.min(Math.max(Math.round(x - MINI_W / 2), 0), MAP_W - MINI_W)
-  const top = Math.min(Math.max(Math.round(y - MINI_H / 2), 0), MAP_H - MINI_H)
-  const px = x - left
-  const py = y - top
-  const pin = Buffer.from(
-    `<svg width="${MINI_W}" height="${MINI_H}" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="${px}" cy="${py}" r="26" fill="none" stroke="#fff6e0" stroke-width="5" opacity="0.8"/>
-      <circle cx="${px}" cy="${py}" r="26" fill="none" stroke="#9b2c1c" stroke-width="3"/>
+  const shape = areas[name] ?? { circle: [x, y, 13] }
+  const pts = [
+    ...(shape.polygons ?? []).flat(),
+    ...(shape.line ?? []),
+    ...(shape.circle ? [[shape.circle[0] - shape.circle[2], shape.circle[1] - shape.circle[2]], [shape.circle[0] + shape.circle[2], shape.circle[1] + shape.circle[2]]] : []),
+  ]
+  const xs = pts.map((q) => q[0])
+  const ys = pts.map((q) => q[1])
+  const [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)]
+  // Crop: the shape's box plus padding, 3:2, at least MINI_W x MINI_H, inside the map.
+  let cw = Math.max(MINI_W, (x1 - x0 + 80) * 1.15, (y1 - y0 + 60) * 1.15 * 1.5)
+  cw = Math.min(cw, MAP_W, MAP_H * 1.5)
+  const ch = cw / 1.5
+  const left = Math.round(Math.min(Math.max((x0 + x1) / 2 - cw / 2, 0), MAP_W - cw))
+  const top = Math.round(Math.min(Math.max((y0 + y1) / 2 - ch / 2, 0), MAP_H - ch))
+  const k = OUT_W / cw
+  const pt = ([a, b]) => `${((a - left) * k).toFixed(1)},${((b - top) * k).toFixed(1)}`
+  const marks = []
+  for (const poly of shape.polygons ?? []) marks.push(`<polygon points="${poly.map(pt).join(" ")}"/>`)
+  if (shape.line) marks.push(`<polyline fill="none" points="${shape.line.map(pt).join(" ")}"/>`)
+  if (shape.circle) {
+    const [cx, cy, r] = shape.circle
+    marks.push(`<circle cx="${((cx - left) * k).toFixed(1)}" cy="${((cy - top) * k).toFixed(1)}" r="${(r * k).toFixed(1)}" fill="none"/>`)
+  }
+  const fill = shape.polygons ? "rgba(155,44,28,0.12)" : "none"
+  const svg = Buffer.from(
+    `<svg width="${OUT_W}" height="${OUT_H}" xmlns="http://www.w3.org/2000/svg">
+      <g fill="none" stroke="#fff6e0" stroke-width="7" stroke-linejoin="round" stroke-linecap="round" opacity="0.7">${marks.join("")}</g>
+      <g fill="${fill}" stroke="#b0281a" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round">${marks.join("")}</g>
     </svg>`,
   )
-  const name = path.posix.basename(p.slug)
   const outFile = path.join(OUT, "places/minimaps", `${name}.jpg`)
   fs.mkdirSync(path.dirname(outFile), { recursive: true })
+  // sharp applies composite after resize, so the overlay is drawn at the output size.
   await sharp(mapSrc)
-    .extract({ left, top, width: MINI_W, height: MINI_H })
-    .composite([{ input: pin }])
-    .resize(MINI_W * 2, MINI_H * 2, { kernel: "lanczos3" })
+    .extract({ left, top, width: Math.round(cw), height: Math.round(ch) })
+    .resize(OUT_W, OUT_H, { kernel: "lanczos3" })
+    .composite([{ input: svg, left: 0, top: 0 }])
     .jpeg({ quality: 85 })
     .toFile(outFile)
   // Insert the mini-map right after the page's H1.
