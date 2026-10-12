@@ -5,17 +5,24 @@ const s=require("sharp"),fs=require("fs");const SP=(process.env.OUT_DIR||"/tmp")
 const MINC=+(process.env.MINC||40);const [img,k,ox,oy,R,pre]=[process.argv[2],+process.argv[3],+process.argv[4],+process.argv[5],+process.argv[6],process.argv[7]];
 (async()=>{
 const up=await s(img).removeAlpha().greyscale().raw().toBuffer({resolveWithObject:true});const W=up.info.width,H=up.info.height;
-const L=Math.floor(-ox/k)-2,T=Math.floor(-oy/k)-2,mw=Math.ceil(W/k)+5,mh=Math.ceil(H/k)+5;
+const MAP=require("path").join(__dirname,"../content/maps/evial.jpg");const meta=await s(MAP).metadata();
+const L=Math.max(0,Math.floor(-ox/k)-2),T=Math.max(0,Math.floor(-oy/k)-2),mw=Math.min(Math.ceil(W/k)+5,meta.width-L),mh=Math.min(Math.ceil(H/k)+5,meta.height-T);
 const RW=Math.round(mw*k),RH=Math.round(mh*k);
-const ref=await s(require("path").join(__dirname,"../content/maps/evial.jpg")).extract({left:Math.max(L,0),top:Math.max(T,0),width:mw,height:mh}).resize(RW,RH).greyscale().raw().toBuffer();
+const ref=await s(MAP).extract({left:L,top:T,width:mw,height:mh}).resize(RW,RH).greyscale().raw().toBuffer();
 const dx=L*k+ox,dy=T*k+oy;
 const line=new Uint8Array(W*H);
 const rgb=await s(img).removeAlpha().raw().toBuffer();
-for(let i=0;i<W*H;i++){if(Math.max(rgb[i*3],rgb[i*3+1],rgb[i*3+2])<12)line[i]=1}
+const NB=+(process.env.NB||-1),REFMIN=+(process.env.REFMIN||60);
+for(let y=0;y<H;y++)for(let x=0;x<W;x++){const i=y*W+x;if(Math.max(rgb[i*3],rgb[i*3+1],rgb[i*3+2])>=12)continue;
+ if(NB<0){line[i]=1;continue}
+ // also require the map itself to be light here, so black map ink is not taken for the line
+ const u=Math.round(x-dx),v=Math.round(y-dy);let m=255;for(let a=-NB;a<=NB;a++)for(let b=-NB;b<=NB;b++){const uu=u+a,vv=v+b;if(uu>=0&&vv>=0&&uu<RW&&vv<RH)m=Math.min(m,ref[vv*RW+uu])}
+ if(m>REFMIN)line[i]=1}
 // drop specks
 {const seen=new Uint8Array(W*H);for(let i=0;i<W*H;i++)if(line[i]&&!seen[i]){const q=[i],c=[i];seen[i]=1;while(q.length){const j=q.pop();const x=j%W,y=(j/W)|0;for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++){const xx=x+a,yy=y+b;if(xx<0||yy<0||xx>=W||yy>=H)continue;const t=yy*W+xx;if(line[t]&&!seen[t]){seen[t]=1;q.push(t);c.push(t)}}}if(c.length<MINC)for(const t of c)line[t]=0}}
 // manual bridges: "x1,y1,x2,y2;..." in screenshot px
 for(const seg of (process.env.BRIDGES||"").split(";").filter(Boolean)){const [x1,y1,x2,y2]=seg.split(",").map(Number);const n=Math.ceil(Math.hypot(x2-x1,y2-y1));for(let t=0;t<=n;t++){const x=Math.round(x1+(x2-x1)*t/n),y=Math.round(y1+(y2-y1)*t/n);for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++)line[(y+b)*W+x+a]=1}}
+await s(Buffer.from(line.map(v=>v*255)),{raw:{width:W,height:H,channels:1}}).png().toFile(SP+pre+"-line.png");
 const P=[];for(let i=0;i<W*H;i++)if(line[i])P.push(i);
 const disk=(arr,val,list)=>{for(const i of list){const x=i%W,y=(i/W)|0;for(let a=-R;a<=R;a++)for(let b=-R;b<=R;b++)if(a*a+b*b<=R*R){const xx=x+a,yy=y+b;if(xx>=0&&yy>=0&&xx<W&&yy<H)arr[yy*W+xx]=val}}};
 const dil=new Uint8Array(W*H);disk(dil,1,P);
