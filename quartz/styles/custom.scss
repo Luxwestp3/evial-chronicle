@@ -188,7 +188,7 @@ footer {
 }
 
 // Mini-map on place pages
-a.minimap {
+div.minimap {
   display: block;
   max-width: 480px;
   margin: 0.5rem 0 1.2rem;
@@ -205,7 +205,4 @@ a.minimap {
     border-radius: 0;
   }
 
-  &:hover {
-    border-color: var(--tertiary);
-  }
 }

@@ -215,7 +215,7 @@ for (const p of places) {
   // Insert the mini-map right after the page's H1.
   const file = path.join(OUT, `${p.slug}.md`)
   const raw = fs.readFileSync(file, "utf8")
-  const fig = `\n<a class="minimap internal" href="./" title="Открыть карту"><img src="minimaps/${name}.jpg" alt="${esc(p.title)} на карте"></a>\n`
+  const fig = `\n<div class="minimap"><img src="minimaps/${name}.jpg" alt="${esc(p.title)} на карте"></div>\n`
   const { data, content } = matter(raw)
   fs.writeFileSync(file, matter.stringify(`${fig}\n${content.trimStart()}`, data))
 }
