@@ -20,6 +20,8 @@ for(let y=0;y<H;y++)for(let x=0;x<W;x++){const i=y*W+x;if(Math.max(rgb[i*3],rgb[
  if(m>REFMIN)line[i]=1}
 // drop specks
 {const seen=new Uint8Array(W*H);for(let i=0;i<W*H;i++)if(line[i]&&!seen[i]){const q=[i],c=[i];seen[i]=1;while(q.length){const j=q.pop();const x=j%W,y=(j/W)|0;for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++){const xx=x+a,yy=y+b;if(xx<0||yy<0||xx>=W||yy>=H)continue;const t=yy*W+xx;if(line[t]&&!seen[t]){seen[t]=1;q.push(t);c.push(t)}}}if(c.length<MINC)for(const t of c)line[t]=0}}
+// erase line pixels inside rectangles "x1,y1,x2,y2;..." (stray strokes outside the shape)
+for(const r of (process.env.ERASE||"").split(";").filter(Boolean)){const [x1,y1,x2,y2]=r.split(",").map(Number);for(let y=y1;y<=y2;y++)for(let x=x1;x<=x2;x++)if(x>=0&&y>=0&&x<W&&y<H)line[y*W+x]=0}
 // manual bridges: "x1,y1,x2,y2;..." in screenshot px
 for(const seg of (process.env.BRIDGES||"").split(";").filter(Boolean)){const [x1,y1,x2,y2]=seg.split(",").map(Number);const n=Math.ceil(Math.hypot(x2-x1,y2-y1));for(let t=0;t<=n;t++){const x=Math.round(x1+(x2-x1)*t/n),y=Math.round(y1+(y2-y1)*t/n);for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++)line[(y+b)*W+x+a]=1}}
 await s(Buffer.from(line.map(v=>v*255)),{raw:{width:W,height:H,channels:1}}).png().toFile(SP+pre+"-line.png");
@@ -31,6 +33,10 @@ for(const i of st)if(!dil[i])ext[i]=1;const stack=st.filter(i=>ext[i]);
 while(stack.length){const i=stack.pop();const x=i%W,y=(i/W)|0;for(const [a,b] of [[1,0],[-1,0],[0,1],[0,-1]]){const xx=x+a,yy=y+b;if(xx<0||yy<0||xx>=W||yy>=H)continue;const j=yy*W+xx;if(!ext[j]&&!dil[j]){ext[j]=1;stack.push(j)}}}
 const E=[];for(let i=0;i<W*H;i++)if(ext[i]){const x=i%W,y=(i/W)|0;if((x>0&&!ext[i-1])||(x<W-1&&!ext[i+1])||(y>0&&!ext[i-W])||(y<H-1&&!ext[i+W]))E.push(i)}
 const reg=new Uint8Array(W*H);for(let i=0;i<W*H;i++)reg[i]=ext[i]?0:1;disk(reg,0,E);
+// optional opening (erode then dilate) to split shapes joined by thin necks
+{const OR=+(process.env.OPEN||0);if(OR>0){const er=new Uint8Array(reg);for(let i=0;i<W*H;i++)if(!reg[i]){const x=i%W,y=(i/W)|0;let edge=false;for(const [a,b] of [[1,0],[-1,0],[0,1],[0,-1]]){const xx=x+a,yy=y+b;if(xx>=0&&yy>=0&&xx<W&&yy<H&&reg[yy*W+xx])edge=true}if(edge)for(let a=-OR;a<=OR;a++)for(let b=-OR;b<=OR;b++)if(a*a+b*b<=OR*OR){const xx=x+a,yy=y+b;if(xx>=0&&yy>=0&&xx<W&&yy<H)er[yy*W+xx]=0}}
+ const di=new Uint8Array(er);for(let i=0;i<W*H;i++)if(er[i]){const x=i%W,y=(i/W)|0;for(let a=-OR;a<=OR;a++)for(let b=-OR;b<=OR;b++)if(a*a+b*b<=OR*OR){const xx=x+a,yy=y+b;if(xx>=0&&yy>=0&&xx<W&&yy<H)di[yy*W+xx]=1}}
+ for(let i=0;i<W*H;i++)reg[i]=di[i]&reg[i]}}
 for(const seg of (process.env.CUTS||"").split(";").filter(Boolean)){const [x1,y1,x2,y2]=seg.split(",").map(Number);const n=Math.ceil(Math.hypot(x2-x1,y2-y1));for(let t=0;t<=n;t++){const x=Math.round(x1+(x2-x1)*t/n),y=Math.round(y1+(y2-y1)*t/n);for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++)reg[(y+b)*W+x+a]=0}}
 const out=Buffer.alloc(W*H*3);for(let i=0;i<W*H;i++){out[i*3]=reg[i]?140:0;out[i*3+1]=line[i]?255:0}
 await s(out,{raw:{width:W,height:H,channels:3}}).png().toFile(SP+pre+"-reg.png");

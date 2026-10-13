@@ -1,7 +1,7 @@
 ---
 title: Огненный архипелаг
 type: place
-map: [455, 785]
+map: [448, 749]
 kind: острова
 first_seen: 0
 tags: [место, драконы]
