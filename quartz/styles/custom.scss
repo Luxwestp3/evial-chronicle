@@ -166,10 +166,26 @@ a.chronicle-title {
   }
 }
 
-// Interactive map
+// Interactive map: the map page drops the right column and uses the full window width
+.page:has(iframe.map-frame) {
+  max-width: none;
+}
+@media all and ($desktop) {
+  .page > #quartz-body:has(iframe.map-frame) {
+    grid-template-columns: #{$sidePanelWidth} minmax(0, 1fr);
+    grid-template-areas:
+      "grid-sidebar-left grid-header"
+      "grid-sidebar-left grid-center"
+      "grid-sidebar-left grid-footer";
+    padding-right: 1.5rem;
+    & > .sidebar.right {
+      display: none;
+    }
+  }
+}
 iframe.map-frame {
   width: 100%;
-  height: 75vh;
+  height: calc(100vh - 13rem);
   min-height: 420px;
   border: 1px solid var(--lightgray);
   border-radius: 10px;
