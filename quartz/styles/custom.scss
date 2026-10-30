@@ -222,3 +222,48 @@ div.minimap {
   }
 
 }
+
+// Session chronicle: short / detailed tabs (see prepare.mjs)
+.session-tabs {
+  display: inline-flex;
+  margin: 0.5rem 0 1rem;
+  border: 1px solid var(--lightgray);
+  border-radius: 999px;
+  padding: 3px;
+  background: var(--highlight);
+
+  input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  label {
+    padding: 0.3rem 1rem;
+    border-radius: 999px;
+    cursor: pointer;
+    font-family: var(--headerFont);
+    font-weight: 600;
+    color: var(--gray);
+    user-select: none;
+  }
+
+  input:checked + label {
+    background: var(--secondary);
+    color: var(--light);
+  }
+
+  input:focus-visible + label {
+    outline: 2px solid var(--tertiary);
+  }
+}
+
+article:has(.sv-short:checked) .session-full,
+article:has(.sv-full:checked) .session-short {
+  display: none;
+}
+
+// The table of contents lists the detailed version only.
+body:has(.sv-short:checked) .toc {
+  display: none;
+}

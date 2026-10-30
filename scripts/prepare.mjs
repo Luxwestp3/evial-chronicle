@@ -113,6 +113,37 @@ const sessionEntry = (fromDir) => (p) => {
 </div>`
 }
 
+// Each chronicle has a short and a detailed version: "## Кратко" and "## Подробно" in the archive.
+// On the site they become two tabs (radio buttons + CSS), short one open by default.
+for (const p of sessions) {
+  const file = path.join(OUT, `${p.slug}.md`)
+  const { data, content } = matter(fs.readFileSync(file, "utf8"))
+  const m = content.match(/^## Кратко[ \t]*\n([\s\S]*?)^## Подробно[ \t]*\n([\s\S]*)$/m)
+  if (!m) continue
+  const id = `sv-${data.number ?? 0}`
+  const tabs = `<div class="session-tabs">
+<input type="radio" name="${id}" id="${id}-short" class="sv-short" checked><label for="${id}-short">Кратко</label>
+<input type="radio" name="${id}" id="${id}-full" class="sv-full"><label for="${id}-full">Подробно</label>
+</div>`
+  const body = `${content.slice(0, m.index).trim()}
+
+${tabs}
+
+<div class="session-version session-short">
+
+${m[1].trim()}
+
+</div>
+
+<div class="session-version session-full">
+
+${m[2].trim()}
+
+</div>
+`
+  fs.writeFileSync(file, matter.stringify(body, data))
+}
+
 // Sessions grouped for the chronicle. A session can set `arc:` in its frontmatter to join a named
 // group (e.g. an act or a journey); otherwise played sessions go under «Сессии».
 // Session 0 (character creation) always stands apart, at the bottom.
