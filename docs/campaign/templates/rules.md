@@ -1,0 +1,15 @@
+---
+title: "ENTITY_TITLE"
+type: rules
+first_seen: SESSION_NUMBER
+updated_session: SESSION_NUMBER
+tags: []
+---
+
+# ENTITY_TITLE
+
+RULE_DESCRIPTION_WITH_CONFIRMED_STATUS
+
+## История
+
+- [Сессия SESSION_NUMBER](SESSION_LINK.md): WHAT_WAS_CONFIRMED_OR_LEFT_UNDECIDED
