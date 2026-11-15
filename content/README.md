@@ -1,7 +1,7 @@
 ---
 title: Архив кампании
 type: index
-updated: 2026-10-30
+updated: 2026-11-15
 ---
 
 # Архив кампании D&D
@@ -24,7 +24,7 @@ updated: 2026-10-30
 
 ## Разделы
 
-- [sessions/](sessions/) — хроника, по файлу на сессию. Сейчас: [Сессия 0](sessions/000-session-zero.md), [Сессия 1](sessions/001-circus-and-snake-temple.md).
+- [sessions/](sessions/) — хроника, по файлу на сессию. Сейчас: [Сессия 0](sessions/000-session-zero.md), [Сессия 1](sessions/001-circus-and-snake-temple.md), [Сессия 2](sessions/002-snake-heart-and-evelina.md).
 - [characters/pc/](characters/pc/) — персонажи игроков.
 - [characters/npc/](characters/npc/) — NPC.
 - [maps/](maps/) — карта мира.
