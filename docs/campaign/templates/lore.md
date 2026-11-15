@@ -1,0 +1,14 @@
+---
+title: "ENTITY_TITLE"
+type: lore
+first_seen: SESSION_NUMBER
+tags: []
+---
+
+# ENTITY_TITLE
+
+CONFIRMED_LORE_WITH_UNCERTAINTIES_PRESERVED
+
+## История
+
+- [Сессия SESSION_NUMBER](SESSION_LINK.md): WHAT_BECAME_KNOWN
