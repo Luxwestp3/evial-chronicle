@@ -1,14 +1,14 @@
 ---
-title: Саппадор
+title: Салладор
 type: place
 map: [830, 625]
 kind: страна
-aliases: [Салладор]
+aliases: [places/sappador, places/Саппадор]
 first_seen: 0
 tags: [место, аасимары]
 ---
 
-# Саппадор
+# Салладор
 
 Страна вдоль **Восточной стены**.
 
