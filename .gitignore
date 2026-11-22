@@ -8,3 +8,7 @@ tsconfig.tsbuildinfo
 .site-content
 private/
 quartz/static/evial-map.html
+
+# записи сессий не хранятся в репозитории
+*.m4a
+*.wav
