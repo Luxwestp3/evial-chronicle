@@ -24,7 +24,7 @@ updated: 2026-11-22
 
 ## Разделы
 
-- [sessions/](sessions/) — хроника, по файлу на сессию. Сейчас: [Сессия 0](sessions/000-session-zero.md), [Сессия 1](sessions/001-circus-and-snake-temple.md), [Сессия 2](sessions/002-giant-snakes-and-altar.md).
+- [sessions/](sessions/) — хроника, по файлу на сессию. Сейчас: [Сессия 0](sessions/000-session-zero.md), [Сессия 1](sessions/001-circus-and-snake-temple.md), [Сессия 2](sessions/002-giant-snakes-and-altar.md), [Сессия 3](sessions/003-queen-tomb-and-ancient-evil.md).
 - [characters/pc/](characters/pc/) — персонажи игроков.
 - [characters/npc/](characters/npc/) — NPC.
 - [maps/](maps/) — карта мира.
