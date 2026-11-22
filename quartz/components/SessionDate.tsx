@@ -10,8 +10,8 @@ const SessionDate: QuartzComponent = ({ fileData, displayClass }: QuartzComponen
     return null
   }
   return (
-    <p class={classNames(displayClass, "content-meta")}>
-      <span>📅 {String(date)}</span>
+    <p class={classNames(displayClass, "content-meta", "session-date")}>
+      <span>{String(date)}</span>
     </p>
   )
 }
