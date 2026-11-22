@@ -114,6 +114,9 @@ node scripts/audio/merge-transcript.mjs private/transcripts/session-002
   пересобран из двух частей (`session_003_transcript_merged.md`), хроника собрана
   и сверена с `full-whisper.md`.
 - `private/` в `.gitignore`; аудио — вне репозитория.
+- Сессии 0 и 1: аудио ждёт в `Dungeons_Audios/session-000/` и `session-001/`
+  (папки созданы). Пайплайн тот же: `prepare.sh` → две части → отдельные загрузки
+  с промптом → склейка → whisper → хроника.
 
 ### 1.5 Хранение (P7, решить отдельно)
 
