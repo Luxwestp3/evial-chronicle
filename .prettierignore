@@ -1,3 +1,10 @@
 public
 node_modules
 .quartz-cache
+
+# The campaign archive is prose and hand-written tables: reformatting it would
+# churn canon files on every session. Style checks cover code and service docs.
+content
+
+# Vendored library, not our code.
+quartz/static/leaflet
