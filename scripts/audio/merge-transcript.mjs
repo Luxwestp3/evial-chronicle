@@ -119,16 +119,23 @@ function audioDuration(file) {
   return Math.round(Number.parseFloat(out))
 }
 
+/** Длительности, записанные prepare.sh; аудио при этом лежит вне репозитория. */
+export function readPrepare(dir) {
+  const file = path.join(dir, "prepare.json")
+  if (!fs.existsSync(file)) return null
+  return JSON.parse(fs.readFileSync(file, "utf8"))
+}
+
 function main(argv) {
   let dir = null
   let offsetArg = null
-  let overlap = 10
+  let overlapArg = null
   let force = false
 
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i]
     if (arg === "--offset") offsetArg = Number(argv[++i])
-    else if (arg === "--overlap") overlap = Number(argv[++i])
+    else if (arg === "--overlap") overlapArg = Number(argv[++i])
     else if (arg === "--force") force = true
     else if (!arg.startsWith("--") && dir === null) dir = arg
     else usage()
@@ -144,23 +151,31 @@ function main(argv) {
     }
   }
 
+  const meta = readPrepare(dir)
+  const overlap = overlapArg ?? meta?.overlap ?? 10
+
   let offset = offsetArg
   if (offset === null) {
-    const audioDir = path.join(dir, "audio")
-    const part1Audio = fs.existsSync(audioDir)
-      ? fs.readdirSync(audioDir).find((name) => name.endsWith("-part1.mp3"))
-      : undefined
-    if (!part1Audio) {
+    if (Number.isFinite(meta?.part1_duration)) {
+      offset = meta.part1_duration - 2 * overlap
       console.error(
-        "не нашёл audio/*-part1.mp3, чтобы вычислить смещение; укажи --offset в секундах",
+        `смещение из prepare.json: ${meta.part1_duration}s - ${2 * overlap}s = ${offset}s`,
       )
-      process.exit(1)
+    } else {
+      const audioDir = path.join(dir, "audio")
+      const part1Audio = fs.existsSync(audioDir)
+        ? fs.readdirSync(audioDir).find((name) => name.endsWith("-part1.mp3"))
+        : undefined
+      if (!part1Audio) {
+        console.error("нет prepare.json и нет audio/*-part1.mp3; укажи --offset в секундах")
+        process.exit(1)
+      }
+      const duration = audioDuration(path.join(audioDir, part1Audio))
+      offset = duration - 2 * overlap
+      console.error(
+        `смещение из длительности ${part1Audio}: ${duration}s - ${2 * overlap}s = ${offset}s`,
+      )
     }
-    const duration = audioDuration(path.join(audioDir, part1Audio))
-    offset = duration - 2 * overlap
-    console.error(
-      `смещение из длительности ${part1Audio}: ${duration}s - ${2 * overlap}s = ${offset}s`,
-    )
   }
 
   const result = mergeParts({

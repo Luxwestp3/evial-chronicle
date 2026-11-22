@@ -3,7 +3,10 @@
 #
 #   scripts/audio/prepare.sh <файл.m4a> <номер сессии>
 #
-# Результат: private/transcripts/session-NNN/audio/session-NNN{,-part1,-part2}.mp3
+# Результат:
+#   <каталог исходника>/session-NNN/session-NNN{,-part1,-part2}.mp3 — аудио,
+#     вне репозитория, рядом с оригиналом (переопределяется DUNGEONS_AUDIO);
+#   private/transcripts/session-NNN/prepare.json — длительности для склейки.
 # Части перекрываются на OVERLAP секунд, чтобы на стыке не потерялась фраза.
 set -euo pipefail
 
@@ -38,9 +41,13 @@ command -v ffprobe >/dev/null 2>&1 || {
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 NNN=$(printf "%03d" "$((10#$SESSION))")
-DIR="$ROOT/private/transcripts/session-$NNN/audio"
-BASE="$DIR/session-$NNN"
-mkdir -p "$DIR"
+
+# Аудио живёт вне репозитория: рядом с оригиналом, в подкаталоге сессии.
+AUDIO_ROOT="${DUNGEONS_AUDIO:-$(cd "$(dirname "$INPUT")" && pwd)}"
+ADIR="$AUDIO_ROOT/session-$NNN"
+BASE="$ADIR/session-$NNN"
+TDIR="$ROOT/private/transcripts/session-$NNN"
+mkdir -p "$ADIR" "$TDIR"
 
 duration() {
   ffprobe -v error -show_entries format=duration -of csv=p=0 "$1" |
@@ -49,9 +56,9 @@ duration() {
 
 # ---------- 1. перекодирование ----------
 if [ -f "$BASE.mp3" ] && [ "${FORCE:-0}" != "1" ]; then
-  echo "уже есть: ${BASE#"$ROOT"/}.mp3 (FORCE=1 — перезаписать)"
+  echo "уже есть: $BASE.mp3 (FORCE=1 — перезаписать)"
 else
-  echo "перекодирую $INPUT -> ${BASE#"$ROOT"/}.mp3"
+  echo "перекодирую $INPUT -> $BASE.mp3"
   ffmpeg -hide_banner -loglevel error -y -i "$INPUT" -vn -map_metadata -1 \
     -ac 1 -ar 16000 -c:a libmp3lame -b:a 64k \
     -af "loudnorm=I=-16:TP=-1.5:LRA=11" \
@@ -81,7 +88,7 @@ P2_START=$((HALF - OVERLAP))
 for n in 1 2; do
   PART="$BASE-part$n.mp3"
   if [ -f "$PART" ] && [ "${FORCE:-0}" != "1" ]; then
-    echo "уже есть: ${PART#"$ROOT"/}"
+    echo "уже есть: $PART"
   elif [ "$n" = 1 ]; then
     ffmpeg -hide_banner -loglevel error -y -i "$BASE.mp3" -ss 0 -t "$P1_END" \
       -c:a libmp3lame -b:a 64k "$PART"
@@ -110,8 +117,21 @@ if [ "$LOST" -lt -60 ] || [ "$LOST" -gt 60 ]; then
   exit 1
 fi
 
+# Длительности нужны склейке: она не должна зависеть от того, где лежит аудио.
+cat >"$TDIR/prepare.json" <<JSON
+{
+  "session": "$NNN",
+  "source": "$INPUT",
+  "audio_dir": "$ADIR",
+  "duration": $DUR,
+  "overlap": $OVERLAP,
+  "part1_duration": $D1,
+  "part2_duration": $D2
+}
+JSON
+
 echo
 echo "Дальше:"
-echo "  1. загрузить ${BASE#"$ROOT"/}-part1.mp3 и ${BASE#"$ROOT"/}-part2.mp3 с промптом из docs/campaign/PLAN.md (приложение A)"
+echo "  1. загрузить $BASE-part1.mp3 и $BASE-part2.mp3 с промптом из docs/campaign/PLAN.md (приложение A)"
 echo "  2. положить ответы в private/transcripts/session-$NNN/part1.md и part2.md"
 echo "  3. собрать: node scripts/audio/merge-transcript.mjs private/transcripts/session-$NNN"

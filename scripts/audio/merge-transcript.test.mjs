@@ -1,10 +1,14 @@
 import test from "node:test"
 import assert from "node:assert/strict"
+import fs from "node:fs"
+import os from "node:os"
+import path from "node:path"
 import {
   parseTimestamp,
   formatTimestamp,
   parseTranscript,
   mergeParts,
+  readPrepare,
 } from "./merge-transcript.mjs"
 
 test("таймкоды: разбор", () => {
@@ -59,4 +63,19 @@ test("склейка: без таймкодов в первой части — �
     () => mergeParts({ part1: "просто текст", part2: "[00:00:01] x", offset: 0, overlap: 10 }),
     /part1\.md/,
   )
+})
+
+test("prepare.json даёт смещение, когда аудио лежит вне репозитория", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "prepare-"))
+  fs.writeFileSync(
+    path.join(dir, "prepare.json"),
+    JSON.stringify({ part1_duration: 6926, overlap: 10 }),
+  )
+
+  const meta = readPrepare(dir)
+  assert.equal(meta.part1_duration, 6926)
+  assert.equal(meta.part1_duration - 2 * meta.overlap, 6906)
+  assert.equal(readPrepare(path.join(dir, "пусто")), null)
+
+  fs.rmSync(dir, { recursive: true, force: true })
 })

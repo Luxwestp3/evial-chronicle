@@ -68,8 +68,10 @@ scripts/audio/prepare.sh "/Users/luxwestps/Documents/Dungeons_Audios/session-002
 ```
 
 Скрипт делает mp3 моно 16 кГц 64 кбит/с с нормализацией громкости и режет запись на две
-части с перекрытием 10 с. Результат — `private/transcripts/session-002/audio/`:
-`session-002.mp3`, `session-002-part1.mp3`, `session-002-part2.mp3`.
+части с перекрытием 10 с. Аудио кладётся рядом с оригиналом, вне репозитория:
+`Dungeons_Audios/session-002/session-002{,-part1,-part2}.mp3`. В
+`private/transcripts/session-002/` остаётся только `prepare.json` с длительностями —
+по нему склейка считает смещение.
 
 Параметры выбраны под 4 часа: ~28 МБ на час, две части примерно по 2 часа.
 
@@ -88,8 +90,9 @@ scripts/audio/prepare.sh "/Users/luxwestps/Documents/Dungeons_Audios/session-002
 node scripts/audio/merge-transcript.mjs private/transcripts/session-002
 ```
 
-Смещение считается из длительности part1 (`offset = длительность − 2 × перекрытие`),
+Смещение берётся из `prepare.json` (`offset = part1_duration − 2 × перекрытие`),
 блоки второй части из перекрытия отбрасываются, таймкоды сдвигаются на абсолютное время.
+Если `prepare.json` нет, скрипт ищет `audio/*-part1.mp3` рядом с транскриптом.
 Флаги: `--offset`, `--overlap`, `--force`.
 
 - Сохранить как `private/transcripts/session-002/dnd_transcript.md`.
@@ -101,15 +104,17 @@ node scripts/audio/merge-transcript.mjs private/transcripts/session-002
 
 ### 1.4 Состояние
 
-- `scripts/audio/prepare.sh` — готов, проверен на синтетической записи.
-- `scripts/audio/merge-transcript.mjs` — готов, 5 тестов в `merge-transcript.test.mjs`.
-- Открыто: прогнать на реальной 4-часовой сессии 2 и проверить стык частей.
-- `private/` в `.gitignore`, ничего не коммитится.
+- `scripts/audio/prepare.sh` — проверен на реальной сессии 2: 3:50:32 → 1:55:26 + 1:55:26.
+- `scripts/audio/merge-transcript.mjs` — готов, тесты в `merge-transcript.test.mjs`.
+- Сессия 2: транскрипт собран, 33 456 слов, 1882 блока. Найдено: пропуск ~8 минут
+  (03:23:05–03:31:20) — восстановлен локальным whisper в `restored-03-23.md`;
+  12 мест, где модель заменила мат звёздочками.
+- `private/` в `.gitignore`; аудио — вне репозитория.
 
 ### 1.5 Хранение (P7, решить отдельно)
 
-- Аудио: `/Users/luxwestps/Documents/Dungeons_Audios`, вне репозитория. Сейчас записи
-  на телефоне; после переноса будет две копии — телефон и диск.
+- Аудио: `/Users/luxwestps/Documents/Dungeons_Audios`, вне репозитория: оригинал `.m4a`
+  и рядом `session-002/` с подготовленными mp3. Сейчас две копии — телефон и диск.
 - В Git аудио не кладём: 4 часа m4a — это 200+ МБ, GitHub отклоняет файлы больше 100 МБ,
   а попавший в историю файл оттуда уже не убрать. `.gitignore` страхует от случайного add.
 - Тексты: приватный репозиторий без Pages (текст маленький, история правок полезна).
