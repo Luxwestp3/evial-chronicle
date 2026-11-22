@@ -20,7 +20,9 @@ a.hero-card {
   color: var(--darkgray);
   font-weight: normal;
   text-decoration: none;
-  transition: border-color 0.15s, transform 0.15s;
+  transition:
+    border-color 0.15s,
+    transform 0.15s;
 
   &:hover {
     border-color: var(--tertiary);
@@ -220,7 +222,6 @@ div.minimap {
     margin: 0;
     border-radius: 0;
   }
-
 }
 
 // Session chronicle: short / detailed tabs (see prepare.mjs)

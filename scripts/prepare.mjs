@@ -50,7 +50,12 @@ const plain = (md) =>
 // First real paragraph after the H1.
 const firstParagraph = (body) => {
   const paras = body.split(/\n\s*\n/).map((p) => p.trim())
-  return paras.find((p) => p && !p.startsWith("#") && !p.startsWith("|") && !p.startsWith("```") && !p.startsWith("!")) ?? ""
+  return (
+    paras.find(
+      (p) =>
+        p && !p.startsWith("#") && !p.startsWith("|") && !p.startsWith("```") && !p.startsWith("!"),
+    ) ?? ""
+  )
 }
 
 // "**Коротко.** ..." paragraph of a session chronicle.
@@ -177,7 +182,9 @@ ${chronicleGroups("sessions")}
 
 ## История мира
 
-${bodyOf("timeline").replace(/^## Сессии[\s\S]*?(?=^## )/m, "").replace(/^## История мира\s*/m, "")}
+${bodyOf("timeline")
+  .replace(/^## Сессии[\s\S]*?(?=^## )/m, "")
+  .replace(/^## История мира\s*/m, "")}
 `,
 )
 
@@ -237,7 +244,12 @@ for (const p of places) {
   const pts = [
     ...(shape.polygons ?? []).flat(),
     ...(shape.line ?? []),
-    ...(shape.circle ? [[shape.circle[0] - shape.circle[2], shape.circle[1] - shape.circle[2]], [shape.circle[0] + shape.circle[2], shape.circle[1] + shape.circle[2]]] : []),
+    ...(shape.circle
+      ? [
+          [shape.circle[0] - shape.circle[2], shape.circle[1] - shape.circle[2]],
+          [shape.circle[0] + shape.circle[2], shape.circle[1] + shape.circle[2]],
+        ]
+      : []),
   ]
   const xs = pts.map((q) => q[0])
   const ys = pts.map((q) => q[1])
@@ -251,11 +263,14 @@ for (const p of places) {
   const k = OUT_W / cw
   const pt = ([a, b]) => `${((a - left) * k).toFixed(1)},${((b - top) * k).toFixed(1)}`
   const marks = []
-  for (const poly of shape.polygons ?? []) marks.push(`<polygon points="${poly.map(pt).join(" ")}"/>`)
+  for (const poly of shape.polygons ?? [])
+    marks.push(`<polygon points="${poly.map(pt).join(" ")}"/>`)
   if (shape.line) marks.push(`<polyline fill="none" points="${shape.line.map(pt).join(" ")}"/>`)
   if (shape.circle) {
     const [cx, cy, r] = shape.circle
-    marks.push(`<circle cx="${((cx - left) * k).toFixed(1)}" cy="${((cy - top) * k).toFixed(1)}" r="${(r * k).toFixed(1)}" fill="none"/>`)
+    marks.push(
+      `<circle cx="${((cx - left) * k).toFixed(1)}" cy="${((cy - top) * k).toFixed(1)}" r="${(r * k).toFixed(1)}" fill="none"/>`,
+    )
   }
   const fill = shape.polygons ? "rgba(155,44,28,0.12)" : "none"
   const svg = Buffer.from(
@@ -288,10 +303,14 @@ const tpl = fs.readFileSync(path.join(root, "scripts/map.template.html"), "utf8"
 // Quartz rewrites .html files found in content, so the map page goes to quartz/static (copied verbatim to /static).
 fs.writeFileSync(
   path.join(root, "quartz/static/evial-map.html"),
-  tpl.replace(
-    "__MARKERS__",
-    JSON.stringify(markers.map((m, i) => ({ ...m, shape: areas[path.posix.basename(places[i].slug)] }))),
-  ).replace("__IMAGE__", `../${mapImage}`),
+  tpl
+    .replace(
+      "__MARKERS__",
+      JSON.stringify(
+        markers.map((m, i) => ({ ...m, shape: areas[path.posix.basename(places[i].slug)] })),
+      ),
+    )
+    .replace("__IMAGE__", `../${mapImage}`),
 )
 write(
   "places/index.md",
