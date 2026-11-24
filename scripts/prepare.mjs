@@ -106,47 +106,27 @@ ${portrait}
 
 // ---------- sessions ----------
 const sessions = byType("session").sort((a, b) => (a.data.number ?? 0) - (b.data.number ?? 0))
+const formatWorldDays = (d) => {
+  if (Number.isInteger(d.day_start)) {
+    const dayStr =
+      Number.isInteger(d.day_end) && d.day_end !== d.day_start
+        ? `Дни ${d.day_start}–${d.day_end}`
+        : `День ${d.day_start}`
+    return d.date_world ? `${dayStr} · ${d.date_world}` : dayStr
+  }
+  return d.date_world ?? ""
+}
 const sessionEntry = (fromDir) => (p) => {
   const d = p.data
+  const world = formatWorldDays(d)
   return `<div class="chronicle-entry">
 <div class="chronicle-marker">${esc(d.number ?? "?")}</div>
 <div class="chronicle-body">
 <a class="chronicle-title internal" href="${rel(fromDir, p.slug)}">${esc(p.title)}</a>
-<div class="chronicle-dates"><span>🗓 ${esc(d.date_real ?? "дата неизвестна")}</span><span>⏳ ${esc(d.date_world ?? "")}</span>${d.location ? `<span>📍 ${esc(d.location)}</span>` : ""}</div>
+<div class="chronicle-dates"><span>🗓 ${esc(d.date_real ?? "дата неизвестна")}</span>${world ? `<span>⏳ ${esc(world)}</span>` : ""}${d.location ? `<span>📍 ${esc(d.location)}</span>` : ""}</div>
 <p>${esc(sessionSummary(p.body))}</p>
 </div>
 </div>`
-}
-
-// Each chronicle has a short and a detailed version: "## Кратко" and "## Подробно" in the archive.
-// On the site they become two tabs (radio buttons + CSS), short one open by default.
-for (const p of sessions) {
-  const file = path.join(OUT, `${p.slug}.md`)
-  const { data, content } = matter(fs.readFileSync(file, "utf8"))
-  const m = content.match(/^## Кратко[ \t]*\n([\s\S]*?)^## Подробно[ \t]*\n([\s\S]*)$/m)
-  if (!m) continue
-  const id = `sv-${data.number ?? 0}`
-  const tabs = `<div class="session-tabs">
-<input type="radio" name="${id}" id="${id}-short" class="sv-short" checked><label for="${id}-short">Кратко</label>
-<input type="radio" name="${id}" id="${id}-full" class="sv-full"><label for="${id}-full">Подробно</label>
-</div>`
-  const body = `${content.slice(0, m.index).trim()}
-
-${tabs}
-
-<div class="session-version session-short">
-
-${m[1].trim()}
-
-</div>
-
-<div class="session-version session-full">
-
-${m[2].trim()}
-
-</div>
-`
-  fs.writeFileSync(file, matter.stringify(body, data))
 }
 
 // Sessions grouped for the chronicle. A session can set `arc:` in its frontmatter to join a named
@@ -173,18 +153,18 @@ const chronicleGroups = (fromDir) => {
 // Root-level archive files (goals, relationships, timeline, questions, README) are folded into these.
 
 // Хроника = sessions/
+const threadsBody = bodyOf("threads")
+const historyBody = bodyOf("timeline")
+  .replace(/^## Сессии[\s\S]*?(?=^## )/m, "")
+  .replace(/^## История мира\s*/m, "")
 write(
   "sessions/index.md",
   { title: "Хроника", hideListing: true },
   `Время в мире идёт вместе с реальным: неделя жизни примерно равна неделе в игре.
 
 ${chronicleGroups("sessions")}
-
-## История мира
-
-${bodyOf("timeline")
-  .replace(/^## Сессии[\s\S]*?(?=^## )/m, "")
-  .replace(/^## История мира\s*/m, "")}
+${threadsBody ? `\n## Сюжетные нити\n\n${threadsBody}\n` : ""}
+${historyBody ? `\n## История мира\n\n${historyBody}\n` : ""}
 `,
 )
 
@@ -340,12 +320,18 @@ for (const [dir, title] of Object.entries(folderTitles)) {
 
 // ---------- home ----------
 const last = played[played.length - 1]
+const currentDay = last
+  ? (last.data.day_end ?? last.data.day_start ?? null)
+  : zero[0]
+    ? (zero[0].data.day_end ?? zero[0].data.day_start ?? null)
+    : null
+const dayBadge = Number.isInteger(currentDay) ? ` Сейчас в Эвиале: **день ${currentDay}**.` : ""
 const tile = (href, icon, name, text) =>
   `<a class="home-tile internal" href="${href}"><span class="home-tile-name">${icon} ${name}</span><span>${text}</span></a>`
 write(
   "index.md",
   { title: "Хроники Эвиала" },
-  `Летопись нашей кампании D&D 5.5e (правила 2024 года). Мастер: **Вазген**. Приключение начинается в [Эгесте](places/egest.md).
+  `Летопись нашей кампании D&D 5.5e (правила 2024 года). Мастер: **Вазген**. Приключение начинается в [Эгесте](places/egest.md).${dayBadge}
 
 <div class="home-tiles">
 ${tile("./sessions/", "📜", "Хроника", "пересказ каждой сессии и история мира")}
