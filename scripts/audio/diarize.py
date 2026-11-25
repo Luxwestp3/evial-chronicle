@@ -34,7 +34,7 @@ VOICES = [
     ("Геннадиус", "03-vanya-gennadius.m4a"),
     ("Каин", "04-serezha-kain.m4a"),
     ("Хаген", "05-petya-hagen.m4a"),
-    ("Азгелос", "06-vadim-azgelos.m4a"),
+    ("Азгелас", "06-vadim-azgelos.m4a"),
 ]
 
 

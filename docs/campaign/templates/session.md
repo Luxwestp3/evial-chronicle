@@ -8,7 +8,7 @@ day_end: 0
 date_world: "WORLD_TIME"
 location: "LOCATION"
 players: [Серёжа, Илья, Петя, Ваня, Вадим]
-characters: [Каин, Бабалай, Хаген Неустанный, Геннадиус, Азгелос]
+characters: [Каин, Бабалай, Хаген Неустанный, Геннадиус, Азгелас]
 tags: []
 sources:
   - "private/transcripts/session-NNN/transcript.md"
