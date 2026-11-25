@@ -116,17 +116,27 @@ const formatWorldDays = (d) => {
   }
   return d.date_world ?? ""
 }
+const sessionMetaSpans = (d) => {
+  const world = formatWorldDays(d)
+  return `<span>🗓 ${esc(d.date_real ?? "дата неизвестна")}</span>${world ? `<span>⏳ ${esc(world)}</span>` : ""}${d.location ? `<span>📍 ${esc(d.location)}</span>` : ""}`
+}
 const sessionEntry = (fromDir) => (p) => {
   const d = p.data
-  const world = formatWorldDays(d)
   return `<div class="chronicle-entry">
 <div class="chronicle-marker">${esc(d.number ?? "?")}</div>
 <div class="chronicle-body">
 <a class="chronicle-title internal" href="${rel(fromDir, p.slug)}">${esc(p.title)}</a>
-<div class="chronicle-dates"><span>🗓 ${esc(d.date_real ?? "дата неизвестна")}</span>${world ? `<span>⏳ ${esc(world)}</span>` : ""}${d.location ? `<span>📍 ${esc(d.location)}</span>` : ""}</div>
+<div class="chronicle-dates">${sessionMetaSpans(d)}</div>
 <p>${esc(sessionSummary(p.body))}</p>
 </div>
 </div>`
+}
+for (const p of sessions) {
+  const file = path.join(OUT, `${p.slug}.md`)
+  const raw = fs.readFileSync(file, "utf8")
+  const { data, content } = matter(raw)
+  const meta = `<div class="chronicle-dates session-meta">${sessionMetaSpans(data)}</div>`
+  fs.writeFileSync(file, matter.stringify(`${meta}\n\n${content.trimStart()}`, data))
 }
 
 // Sessions grouped for the chronicle. A session can set `arc:` in its frontmatter to join a named
