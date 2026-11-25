@@ -2,17 +2,39 @@ import { QuartzComponent, QuartzComponentConstructor, QuartzComponentProps } fro
 import { classNames } from "../util/lang"
 import style from "./styles/contentMeta.scss"
 
-// Sessions carry the real play date in frontmatter (`date_real`), not the git
-// modification date. Other pages hide the meta line entirely.
+// Sessions carry the real play date, in-world days, and locations in frontmatter,
+// rendered above the tags instead of git modification dates.
 const SessionDate: QuartzComponent = ({ fileData, displayClass }: QuartzComponentProps) => {
-  const date = fileData.frontmatter?.date_real
-  if (!date) {
+  const fm = fileData.frontmatter
+  if (!fm) {
     return null
   }
+  const dateReal = fm.date_real ? String(fm.date_real) : ""
+  const dayStart = typeof fm.day_start === "number" ? fm.day_start : null
+  const dayEnd = typeof fm.day_end === "number" ? fm.day_end : null
+  const dateWorld = fm.date_world ? String(fm.date_world) : ""
+  const world =
+    dayStart !== null
+      ? (() => {
+          const dayStr =
+            dayEnd !== null && dayEnd !== dayStart
+              ? `Дни ${dayStart}–${dayEnd}`
+              : `День ${dayStart}`
+          return dateWorld ? `${dayStr} · ${dateWorld}` : dayStr
+        })()
+      : dateWorld
+  const location = fm.location ? String(fm.location) : ""
+
+  if (!dateReal && !world && !location) {
+    return null
+  }
+
   return (
-    <p class={classNames(displayClass, "content-meta", "session-date")}>
-      <span>{String(date)}</span>
-    </p>
+    <div class={classNames(displayClass, "chronicle-dates", "session-meta")}>
+      {dateReal && <span>🗓 {dateReal}</span>}
+      {world && <span>⏳ {world}</span>}
+      {location && <span>📍 {location}</span>}
+    </div>
   )
 }
 

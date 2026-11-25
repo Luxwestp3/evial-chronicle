@@ -131,13 +131,6 @@ const sessionEntry = (fromDir) => (p) => {
 </div>
 </div>`
 }
-for (const p of sessions) {
-  const file = path.join(OUT, `${p.slug}.md`)
-  const raw = fs.readFileSync(file, "utf8")
-  const { data, content } = matter(raw)
-  const meta = `<div class="chronicle-dates session-meta">${sessionMetaSpans(data)}</div>`
-  fs.writeFileSync(file, matter.stringify(`${meta}\n\n${content.trimStart()}`, data))
-}
 
 // Sessions grouped for the chronicle. A session can set `arc:` in its frontmatter to join a named
 // group (e.g. an act or a journey); otherwise played sessions go under «Сессии».
