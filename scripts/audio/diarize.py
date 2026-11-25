@@ -26,6 +26,7 @@ os.makedirs(TMP_VOICES, exist_ok=True)
 
 SEG_MODEL = os.path.join(MODELS, "sherpa-onnx-pyannote-segmentation-3-0/model.onnx")
 EMB_MODEL = os.path.join(MODELS, "nemo_en_titanet_large.onnx")
+GIGAAM_DIR = os.path.join(MODELS, "giga-am-v3-punct")
 
 VOICES = [
     ("ГМ", "01-vazgen-gm.m4a"),
@@ -204,6 +205,49 @@ def main():
             "direct_score": round(direct_score, 3),
         })
 
+    # Локальные текстовые якоря GigaAM-v3-punct поверх сегментов TitaNet-Large (0% квоты API)
+    has_gigaam = os.path.exists(os.path.join(GIGAAM_DIR, "encoder.int8.onnx"))
+    if has_gigaam:
+        print("\nЗапускаю GigaAM-v3-punct поверх сегментов TitaNet-Large...", flush=True)
+        t_asr0 = time.time()
+        recognizer = sherpa_onnx.OfflineRecognizer.from_transducer(
+            encoder=os.path.join(GIGAAM_DIR, "encoder.int8.onnx"),
+            decoder=os.path.join(GIGAAM_DIR, "decoder.onnx"),
+            joiner=os.path.join(GIGAAM_DIR, "joiner.onnx"),
+            tokens=os.path.join(GIGAAM_DIR, "tokens.txt"),
+            num_threads=8,
+            sample_rate=16000,
+            feature_dim=64,
+            decoding_method="greedy_search",
+            model_type="nemo_transducer",
+            provider="cpu",
+        )
+        pad = 0.15
+        max_slice = 20.0
+        for idx_s, seg in enumerate(enriched):
+            dur = seg["end"] - seg["start"]
+            if dur < 0.35:
+                seg["asr_text"] = ""
+                continue
+            parts = []
+            cur = seg["start"]
+            while cur < seg["end"]:
+                nxt = min(seg["end"], cur + max_slice)
+                a = max(0, int((cur - pad) * sr))
+                b = min(len(samples), int((nxt + pad) * sr))
+                if b - a >= int(0.3 * sr):
+                    st = recognizer.create_stream()
+                    st.accept_waveform(sr, samples[a:b])
+                    recognizer.decode_stream(st)
+                    t = st.result.text.strip()
+                    if t:
+                        parts.append(t)
+                cur = nxt
+            seg["asr_text"] = " ".join(parts)
+            if (idx_s + 1) % 300 == 0:
+                print(f"  GigaAM: {idx_s + 1}/{len(enriched)} ({time.time() - t_asr0:.1f}s)", flush=True)
+        print(f"GigaAM готов за {time.time() - t_asr0:.1f}s", flush=True)
+
     out_json = os.path.join(session_dir, "diarization.json")
     with open(out_json, "w") as f:
         json.dump(
@@ -219,15 +263,19 @@ def main():
         )
     print(f"\nСохранено: {out_json}")
 
-    # Генерируем per-chunk .diar.txt для субагентов
+    # Генерируем per-chunk .diar.txt и .anchored.txt для субагентов
     if os.path.exists(chunks_meta_path):
         with open(chunks_meta_path) as f:
             meta = json.load(f)
         for ch in meta["chunks"]:
             s0, s1 = ch["start_sec"], ch["end_sec"]
-            lines = [
+            diar_lines = [
                 f"# Диаризация TitaNet-Large ({ch['name']}: {fmt_ts(s0)} – {fmt_ts(s1)})",
                 "# Формат: [старт - конец] (длительность) Кластер [direct=Имя скор, если >= 0.45]",
+            ]
+            anch_lines = [
+                f"# Якоря TitaNet-Large + черновой текст GigaAM-v3 ({ch['name']}: {fmt_ts(s0)} – {fmt_ts(s1)})",
+                "# ВНИМАНИЕ: текст GigaAM черновой (путает имена мира и наложения), но [таймкод] и direct=Имя (>= 0.50) сняты точно с этого файла.",
             ]
             for seg in enriched:
                 if seg["end"] < s0 or seg["start"] > s1:
@@ -238,11 +286,20 @@ def main():
                 extra = ""
                 if seg["direct"] and seg["direct_score"] >= 0.45:
                     extra = f" (direct={seg['direct']} {seg['direct_score']:.2f})"
-                lines.append(f"[{seg['abs_start']} - {seg['abs_end']}] ({dur:.1f}s) {seg['speaker']}{extra}")
+                diar_lines.append(f"[{seg['abs_start']} - {seg['abs_end']}] ({dur:.1f}s) {seg['speaker']}{extra}")
+                if has_gigaam:
+                    txt = seg.get("asr_text", "").strip()
+                    if txt:
+                        anch_lines.append(f"[{seg['abs_start']} - {seg['abs_end']}] {seg['speaker']}{extra}: {txt}")
             out_txt = os.path.join(session_dir, "chunks", f"{ch['name']}.diar.txt")
             with open(out_txt, "w") as f:
-                f.write("\n".join(lines) + "\n")
-        print(f"Сгенерировано {len(meta['chunks'])} файлов *.diar.txt в {os.path.join(session_dir, 'chunks')}")
+                f.write("\n".join(diar_lines) + "\n")
+            if has_gigaam:
+                out_anch = os.path.join(session_dir, "chunks", f"{ch['name']}.anchored.txt")
+                with open(out_anch, "w") as f:
+                    f.write("\n".join(anch_lines) + "\n")
+        msg = "*.diar.txt и *.anchored.txt" if has_gigaam else "*.diar.txt"
+        print(f"Сгенерировано {len(meta['chunks'])} пар {msg} в {os.path.join(session_dir, 'chunks')}")
 
 
 if __name__ == "__main__":

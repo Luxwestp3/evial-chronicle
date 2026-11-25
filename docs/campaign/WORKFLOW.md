@@ -12,18 +12,18 @@
    scripts/audio/chunk.sh /Users/luxwestps/Documents/Projects/GitHub/Dungeons_Audios/session-NNN/session-NNN.m4a N
    ```
 
-   Режет оригинал на 6-минутные `.mp3` (44.1 кГц, 128 кбит/с, моно) с перекрытием 10 сек в `private/transcripts/session-NNN/chunks/` и готовит `audio-16k.wav` + `chunks.json`.
+   Режет оригинал на 12-минутные `.mp3` (44.1 кГц, 128 кбит/с, моно) с перекрытием 15 сек в `private/transcripts/session-NNN/chunks/` и готовит `audio-16k.wav` + `chunks.json`.
 
-2. **Локальная диаризация (`sherpa-onnx` + `pyannote-segmentation-3.0` + `TitaNet-Large`):**
+2. **Локальная диаризация + текстовые якоря (`sherpa-onnx` + `pyannote-segmentation-3.0` + `TitaNet-Large` + `GigaAM-v3-punct`):**
 
    ```bash
    private/diarizer/.venv/bin/python scripts/audio/diarize.py private/transcripts/session-NNN
    ```
 
-   Кластеризует голоса по всей сессии, сопоставляет кластеры и каждый сегмент с 6 проверенными референсами в `private/voices/` и генерирует `chunks/chunk-XX.diar.txt`.
+   Кластеризует голоса по всей сессии, сопоставляет кластеры и каждый сегмент с 6 проверенными референсами в `private/voices/`, прогоняет локальный `GigaAM-v3-punct` поверх сегментов (0% квоты API) и генерирует `chunks/chunk-XX.anchored.txt`.
 
-3. **Мультимодальная расшифровка кусков и склейка:**
-   - Субагенты `dnd-hybrid-transcriber` прослушивают каждый `chunk-XX.mp3` вместе с `chunk-XX.diar.txt` и пишут дословный `chunk-XX.md`.
+3. **Однопроходная мультимодальная вычитка кусков и склейка:**
+   - Лёгкие субагенты `dnd-anchored-transcriber` (`model="flash"`, 4 Hydrogen) за один проход (без shell/ffmpeg) читают `chunk-XX.anchored.txt` и слушают `chunk-XX.mp3`, исправляют лор/термины/перекличку и пишут чистый `chunk-XX.md`.
    - Склейка в единый `private/transcripts/session-NNN/transcript.md`:
      ```bash
      node scripts/audio/merge-chunks.mjs private/transcripts/session-NNN

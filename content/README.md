@@ -24,7 +24,7 @@ updated: 2026-11-25
 
 ## Разделы
 
-- [sessions/](sessions/) — хроника, по файлу на сессию. Сейчас: [Сессия 0](sessions/000-session-zero.md).
+- [sessions/](sessions/) — хроника, по файлу на сессию. Сейчас: [Сессия 0](sessions/000-session-zero.md), [Сессия 1](sessions/001-circus-and-snake-temple.md).
 - [characters/pc/](characters/pc/) — персонажи игроков.
 - [characters/npc/](characters/npc/) — ключевые NPC.
 - [maps/](maps/) — карта мира и полигоны регионов.

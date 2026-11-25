@@ -3,18 +3,18 @@
 # с перекрытием для мультимодальной транскрибации и готовит 16 кГц WAV для локальной
 # диаризации (sherpa-onnx + pyannote-segmentation-3.0 + TitaNet-Large).
 #
-#   scripts/audio/chunk.sh <input.m4a> <session-number> [chunk_sec=360] [overlap_sec=10]
+#   scripts/audio/chunk.sh <input.m4a> <session-number> [chunk_sec=720] [overlap_sec=15]
 set -euo pipefail
 
 if [ $# -lt 2 ] || [ $# -gt 4 ]; then
-  echo "usage: $0 <input-audio> <session-number> [chunk_sec=360] [overlap_sec=10]" >&2
+  echo "usage: $0 <input-audio> <session-number> [chunk_sec=720] [overlap_sec=15]" >&2
   exit 2
 fi
 
 INPUT="$1"
 SESSION="$2"
-CHUNK_SEC="${3:-360}"
-OVERLAP="${4:-10}"
+CHUNK_SEC="${3:-720}"
+OVERLAP="${4:-15}"
 
 [ -f "$INPUT" ] || { echo "нет файла: $INPUT" >&2; exit 1; }
 [[ "$SESSION" =~ ^[0-9]+$ ]] || { echo "номер сессии должен быть целым: $SESSION" >&2; exit 2; }

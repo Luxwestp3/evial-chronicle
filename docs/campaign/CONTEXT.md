@@ -7,8 +7,8 @@
 
 - [Состав партии, система, мастер и написание имён](../../content/README.md).
 - [Правила репозитория](../../AGENTS.md), [обработка сессии](WORKFLOW.md).
-- [Последняя обработанная сессия](../../content/sessions/000-session-zero.md):
-  пересборка кампании на ветке `rebuild/v2` (гибридный пайплайн `TitaNet-Large` + мультимодальные куски `.mp3`).
+- [Последняя обработанная сессия](../../content/sessions/001-circus-and-snake-temple.md):
+  пересборка кампании на ветке `rebuild/v2` (пайплайн `TitaNet-Large` + якоря `GigaAM-v3` + вычитка `4 Hydrogen`).
 - [Хронология](../../content/timeline.md) и [сюжетные нити](../../content/threads.md).
 
 ## Что читать по задаче
