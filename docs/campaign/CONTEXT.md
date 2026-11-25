@@ -7,8 +7,8 @@
 
 - [Состав партии, система, мастер и написание имён](../../content/README.md).
 - [Правила репозитория](../../AGENTS.md), [обработка сессии](WORKFLOW.md).
-- [Последняя обработанная сессия](../../content/sessions/003-queen-tomb-and-ancient-evil.md):
-  пересборка кампании на ветке `rebuild/v2` (пайплайн `TitaNet-Large` + якоря `GigaAM-v3` + вычитка `4 Hydrogen`).
+- [Последняя обработанная сессия](../../content/sessions/004-village-and-elven-fort.md):
+  пересборка кампании на ветке `rebuild/v2` завершена для всех сессий `0–4` (пайплайн `TitaNet-Large` + якоря `GigaAM-v3` + аудиовычитка).
 - [Хронология](../../content/timeline.md) и [сюжетные нити](../../content/threads.md).
 
 ## Что читать по задаче
