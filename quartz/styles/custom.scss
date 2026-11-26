@@ -141,9 +141,13 @@ a.chronicle-title {
 // Home navigation tiles
 .home-tiles {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.7rem;
   margin: 1.2rem 0 1.8rem;
+
+  @media all and ($mobile) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 
   a.home-tile {
     display: flex;
