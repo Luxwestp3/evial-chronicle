@@ -333,7 +333,7 @@ const tile = (href, icon, name, text) =>
   `<a class="home-tile internal" href="${href}"><span class="home-tile-name">${icon} ${name}</span><span>${text}</span></a>`
 write(
   "index.md",
-  { title: "Хроники Эвиала" },
+  { title: "Расхитители спален" },
   `Летопись нашей кампании D&D 5.5e (правила 2024 года). Мастер: **Вазген**. Приключение начинается в [Эгесте](places/egest.md).${dayBadge}
 
 <div class="home-tiles">
