@@ -2,7 +2,28 @@
 @use "./variables.scss" as *;
 
 .page-title {
-  line-height: 1.15;
+  line-height: 1.1;
+}
+
+// Page header rhythm: tight breadcrumbs → title → meta → tags, then clear gap before body
+.page > #quartz-body .page-header {
+  margin-bottom: 1.5rem;
+
+  .breadcrumb-container {
+    margin-top: 0;
+  }
+
+  .breadcrumb-container + .article-title {
+    margin-top: 0.65rem;
+  }
+
+  .session-meta {
+    margin: 0.75rem 0 0;
+  }
+
+  ul.tags {
+    margin: 0.75rem 0 0;
+  }
 }
 
 // Hero cards
@@ -136,10 +157,6 @@ a.chronicle-title {
   gap: 0.3rem 1rem;
   font-size: 0.85rem;
   color: var(--gray);
-}
-
-.session-meta {
-  margin: 0.4rem 0 0.7rem;
 }
 
 // Home navigation tiles
