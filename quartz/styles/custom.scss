@@ -140,6 +140,10 @@ a.hero-card {
 .chronicle-body {
   flex: 1;
 
+  > .chronicle-dates {
+    margin-top: 0.35rem;
+  }
+
   p {
     margin: 0.4rem 0 0;
   }
