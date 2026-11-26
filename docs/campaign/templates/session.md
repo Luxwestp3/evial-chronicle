@@ -5,7 +5,7 @@ number: SESSION_NUMBER
 date_real: "REAL_DATE"
 day_start: 0
 day_end: 0
-date_world: "WORLD_TIME"
+date_world: "SEASON"
 location: "LOCATION"
 players: [Серёжа, Илья, Петя, Ваня, Вадим]
 characters: [Каин, Бабалай, Хаген Неустанный, Геннадиус, Азгелас]
