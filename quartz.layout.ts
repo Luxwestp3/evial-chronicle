@@ -16,6 +16,16 @@ export const sharedPageComponents: SharedLayout = {
   }),
 }
 
+const globalSidebarGraph = Component.Graph({
+  localGraph: {
+    depth: -1,
+    scale: 0.9,
+    centerForce: 0.2,
+    focusOnHover: true,
+    enableRadial: true,
+  },
+})
+
 // components for pages that display a single page (e.g. a single note)
 export const defaultContentPageLayout: PageLayout = {
   beforeBody: [
@@ -62,6 +72,10 @@ export const defaultContentPageLayout: PageLayout = {
   ],
   right: [
     Component.ConditionalRender({
+      component: globalSidebarGraph,
+      condition: (page) => page.fileData.slug === "index",
+    }),
+    Component.ConditionalRender({
       component: Component.Graph(),
       condition: (page) => page.fileData.slug !== "index",
     }),
@@ -102,5 +116,10 @@ export const defaultListPageLayout: PageLayout = {
       },
     }),
   ],
-  right: [],
+  right: [
+    Component.ConditionalRender({
+      component: globalSidebarGraph,
+      condition: (page) => page.fileData.slug !== "places/index",
+    }),
+  ],
 }
